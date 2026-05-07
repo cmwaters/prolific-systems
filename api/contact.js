@@ -1,19 +1,16 @@
-import { Resend } from 'resend';
-
-const toEmail = process.env.CONTACT_TO_EMAIL ?? 'cmwaters19@gmail.com';
-const fromEmail = process.env.CONTACT_FROM_EMAIL ?? 'Prolific Systems <onboarding@resend.dev>';
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  if (!process.env.RESEND_API_KEY) {
-    return res.status(500).json({ error: 'Missing RESEND_API_KEY' });
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+
+  if (!botToken || !chatId) {
+    return res.status(500).json({ error: 'Missing Telegram configuration' });
   }
 
-  const resend = new Resend(process.env.RESEND_API_KEY);
   const { email, message } = req.body ?? {};
   const trimmedEmail = typeof email === 'string' ? email.trim() : '';
   const trimmedMessage = typeof message === 'string' ? message.trim() : '';
@@ -23,24 +20,31 @@ export default async function handler(req, res) {
   }
 
   try {
-    await resend.emails.send({
-      from: fromEmail,
-      to: toEmail,
-      replyTo: trimmedEmail,
-      subject: 'New Prolific Systems enquiry',
-      text: [
-        'New enquiry from the Prolific Systems site.',
-        '',
-        `Email: ${trimmedEmail}`,
-        '',
-        'Message:',
-        trimmedMessage,
-      ].join('\n'),
+    const telegramResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        disable_web_page_preview: true,
+        text: [
+          'New Prolific Systems enquiry',
+          '',
+          `Email: ${trimmedEmail}`,
+          '',
+          'Message:',
+          trimmedMessage,
+        ].join('\n'),
+      }),
     });
+
+    if (!telegramResponse.ok) {
+      const errorText = await telegramResponse.text();
+      throw new Error(`Telegram sendMessage failed: ${telegramResponse.status} ${errorText}`);
+    }
 
     return res.status(200).json({ ok: true });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Unable to send message' });
+    return res.status(500).json({ error: 'Unable to send Telegram message' });
   }
 }
