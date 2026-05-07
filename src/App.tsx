@@ -298,7 +298,7 @@ export default function App() {
             </div>
             <div className="field">
               <label htmlFor="contact-message">Message</label>
-              <textarea id="contact-message" name="message" placeholder="Tell us what you are growing." required />
+              <textarea id="contact-message" name="message" placeholder="Tell us what problems you'd like us to try solve." required />
             </div>
             <button className="submit" type="submit">
               <span className="ring" aria-hidden="true" />
