@@ -4,9 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --host 0.0.0.0",
-    "build": "tsc && vite build",
-    "preview": "vite preview --host 0.0.0.0"
+    "dev": "npm run dev:landing",
+    "dev:landing": "VITE_APP_TARGET=landing vite --host 0.0.0.0 --port 5173 --strictPort",
+    "dev:sim": "VITE_APP_TARGET=simulator vite --host 0.0.0.0 --port 5174 --strictPort",
+    "build": "npm run build:landing",
+    "build:landing": "VITE_APP_TARGET=landing tsc && VITE_APP_TARGET=landing vite build",
+    "build:sim": "VITE_APP_TARGET=simulator tsc && VITE_APP_TARGET=simulator vite build",
+    "preview": "vite preview --host 0.0.0.0 --port 4173"
   },
   "dependencies": {
     "@types/react": "^19.2.14",
